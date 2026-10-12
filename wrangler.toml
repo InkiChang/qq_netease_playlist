@@ -1,6 +1,7 @@
 name = "playlist-parser"
 main = "src/index.js"
 compatibility_date = "2024-11-01"
+account_id = "593b7dfe753c49ea7e93a2510cf73474"
 
 [observability]
 enabled = true
