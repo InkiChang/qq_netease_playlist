@@ -31,19 +31,6 @@ npx wrangler login   # 登录
 npx wrangler deploy  # 部署（配置见 wrangler.toml）
 ```
 
-### 方式 C：GitHub Actions 自动部署（推代码即上线）
-
-仓库已内置 [.github/workflows/deploy.yml](.github/workflows/deploy.yml)：push 到 `main`（或 Actions 页手动 Run workflow）时自动构建单文件并部署。
-
-只需配置一个 Secret：
-
-1. Cloudflare Dashboard → **My Profile → API Tokens → Create Token**，选择模板 **Edit Cloudflare Workers**（权限：Account → Workers Scripts → Edit）
-2. 复制生成的 Token（只显示一次）
-3. GitHub 仓库 **Settings → Secrets and variables → Actions → New repository secret**，Name 填 `CLOUDFLARE_API_TOKEN`，Value 粘贴 Token
-4. 完成。Account ID 已内置在 `wrangler.toml`，无需额外配置
-
-> ⚠️ Token 仅在 GitHub 服务器上用于部署（命令行 `wrangler deploy dist/worker-single.js --name playlist-parser`），不要提交到代码仓库。
-
 ## 📡 API
 
 ### 解析歌单（GET，默认 JSON）
