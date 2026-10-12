@@ -1,0 +1,15 @@
+{
+  "name": "playlist-parser-cf",
+  "version": "1.0.0",
+  "description": "网易云音乐/QQ音乐歌单分享链接解析 Worker（移植自 HiFi-DL online-playlist 模块）",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "node test/test.mjs",
+    "build:single": "node scripts/build-single.mjs",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4"
+  }
+}

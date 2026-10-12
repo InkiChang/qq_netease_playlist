@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#F2F2F7">
+<title>歌单解析器</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "PingFang SC", "Segoe UI", Roboto, "Noto Sans SC", sans-serif;
+  background: #F2F2F7; color: #000; line-height: 1.45;
+  padding: 24px 16px calc(32px + env(safe-area-inset-bottom));
+  -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+}
+.wrap { max-width: 660px; margin: 0 auto; }
+
+/* ===== iOS 大标题 ===== */
+header { padding: 12px 4px 20px; }
+header h1 { font-size: 32px; font-weight: 700; letter-spacing: -0.3px; }
+header p { margin-top: 6px; font-size: 14px; color: #8E8E93; }
+
+/* ===== 卡片 ===== */
+.card {
+  background: #FFF; border-radius: 16px; padding: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.04), 0 8px 24px rgba(0,0,0,.05);
+  margin-bottom: 16px;
+}
+.card + .card { margin-top: 0; }
+.card-title { font-size: 13px; font-weight: 600; color: #6D6D72; text-transform: none; margin-bottom: 10px; letter-spacing: .2px; }
+
+/* ===== 输入区 ===== */
+.field {
+  display: flex; align-items: center; gap: 8px;
+  background: #F2F2F7; border-radius: 12px; padding: 0 14px;
+  border: 1.5px solid transparent; transition: border-color .18s ease, background .18s ease;
+}
+.field:focus-within { background: #FFF; border-color: #007AFF; box-shadow: 0 0 0 3.5px rgba(0,122,255,.14); }
+.field .ic { font-size: 17px; opacity: .55; flex: none; }
+.field input {
+  flex: 1; border: 0; outline: 0; background: transparent;
+  font: inherit; font-size: 16px; padding: 13px 0; color: #000;
+}
+.field input::placeholder { color: #AEAEB4; }
+.field input::-webkit-scrollbar { display: none; }
+
+/* ===== 分段控件 ===== */
+.seg {
+  display: flex; background: #E9E9EB; border-radius: 9px; padding: 2px; margin-top: 12px;
+}
+.seg button {
+  flex: 1; border: 0; background: transparent; color: #000; font: inherit; font-size: 14px; font-weight: 500;
+  padding: 7px 0; border-radius: 7px; cursor: pointer; transition: all .18s ease;
+}
+.seg button.on { background: #FFF; color: #000; box-shadow: 0 1px 4px rgba(0,0,0,.12), 0 0 1px rgba(0,0,0,.08); font-weight: 600; }
+
+/* ===== 主按钮 ===== */
+.go {
+  display: block; width: 100%; margin-top: 14px; padding: 14px 0;
+  border: 0; border-radius: 12px; background: #007AFF; color: #FFF;
+  font: inherit; font-size: 17px; font-weight: 600; letter-spacing: .3px; cursor: pointer;
+  transition: transform .12s ease, opacity .18s ease, background .18s ease;
+}
+.go:active { transform: scale(.985); opacity: .85; }
+.go:disabled { opacity: .45; }
+.go.loading { background: #007AFF; opacity: .75; }
+
+/* ===== 错误条 ===== */
+.err {
+  display: none; margin-bottom: 16px; padding: 12px 14px;
+  background: #FFF2F0; border: 1px solid #FFD7D3; border-radius: 12px;
+  color: #D70015; font-size: 14px;
+}
+
+/* ===== 结果卡 ===== */
+.meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.meta .t { font-size: 19px; font-weight: 700; letter-spacing: -0.2px; flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pbadge { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 999px; color: #FFF; flex: none; }
+.pbadge.netease { background: #E60026; }
+.pbadge.qq { background: #31C27C; }
+.st { font-size: 13px; color: #8E8E93; font-weight: 500; }
+.st.ok { color: #34C759; }
+
+.dl { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 14px; }
+.dl button {
+  padding: 10px 0; border: 1px solid rgba(0,122,255,.35); border-radius: 10px;
+  background: rgba(0,122,255,.08); color: #007AFF; font: inherit; font-size: 14px; font-weight: 600;
+  cursor: pointer; transition: background .15s ease, transform .12s ease;
+}
+.dl button:active { background: rgba(0,122,255,.18); transform: scale(.97); }
+
+/* ===== 搜索 ===== */
+.search {
+  width: 100%; margin-top: 14px; padding: 10px 14px 10px 38px;
+  background: #F2F2F7 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='15' viewBox='0 0 24 24' fill='none' stroke='%238E8E93' stroke-width='2.4' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M21 21l-4.3-4.3'/%3E%3C/svg%3E") no-repeat 13px center;
+  border: 0; border-radius: 10px; font: inherit; font-size: 15px; color: #000; outline: 0;
+}
+.search:focus { background-color: #E9E9EB; }
+.search::placeholder { color: #AEAEB4; }
+
+/* ===== 歌曲列表 ===== */
+.tblbox { margin-top: 10px; max-height: 480px; overflow-y: auto; -webkit-overflow-scrolling: touch; border-radius: 10px; }
+table { width: 100%; border-collapse: collapse; font-size: 15px; }
+th { position: sticky; top: 0; background: #FFF; text-align: left; font-size: 12px; font-weight: 600; color: #8E8E93; padding: 8px 0; border-bottom: 1px solid #E5E5EA; z-index: 1; }
+td { padding: 11px 0; border-bottom: 1px solid #F0F0F4; vertical-align: middle; }
+tr:last-child td { border-bottom: 0; }
+td.num { width: 34px; color: #C7C7CC; font-size: 13px; font-variant-numeric: tabular-nums; }
+td.name { font-weight: 500; }
+td.artist { color: #3C3C43; font-size: 14px; }
+td.album { color: #8E8E93; font-size: 13px; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+td.dur { width: 56px; color: #8E8E93; font-size: 13px; text-align: right; font-variant-numeric: tabular-nums; }
+.empty { padding: 24px 0 !important; text-align: center; color: #AEAEB4; font-size: 14px; }
+
+/* ===== 页脚 ===== */
+footer { text-align: center; color: #AEAEB4; font-size: 12px; margin-top: 26px; padding: 0 16px; }
+
+/* ===== 响应式：平板/窄窗（≥700px，仍单列加宽） ===== */
+@media (min-width: 700px) {
+  body { padding: 40px 24px calc(48px + env(safe-area-inset-bottom)); }
+  .wrap { max-width: 860px; }
+  header h1 { font-size: 34px; }
+  .dl button { font-size: 15px; }
+}
+
+/* ===== 桌面端（≥1000px）：居中单列加宽 ===== */
+@media (min-width: 1000px) {
+  body { padding: 48px 32px calc(56px + env(safe-area-inset-bottom)); }
+  .wrap { max-width: 980px; }
+  header { padding: 8px 4px 28px; text-align: center; }
+  header h1 { font-size: 40px; }
+  header p { font-size: 15px; }
+  .card { padding: 24px; margin-bottom: 20px; }
+  .card-title { font-size: 14px; margin-bottom: 12px; }
+  .field input { font-size: 16px; padding: 14px 0; }
+  .seg { margin-top: 14px; }
+  .seg button { padding: 9px 0; font-size: 15px; }
+  .go { padding: 15px 0; font-size: 17px; }
+  .meta .t { font-size: 22px; }
+  .dl { gap: 10px; margin-top: 16px; }
+  .dl button { padding: 12px 0; font-size: 15px; }
+  .search { padding: 12px 14px 12px 40px; font-size: 15px; }
+  .tblbox { max-height: 600px; margin-top: 12px; }
+  table { font-size: 15px; }
+  th { padding: 10px 0; }
+  td { padding: 13px 0; }
+  td.album { max-width: none; }
+  td.dur { font-size: 14px; }
+  footer { margin-top: 32px; font-size: 13px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>歌单解析器</h1>
+  <p>粘贴网易云 / QQ 音乐歌单分享链接，生成可下载的歌曲清单</p>
+</header>
+
+<div class="card">
+  <div class="card-title">歌单链接</div>
+  <label class="field">
+    <span class="ic">🔗</span>
+    <input type="text" id="url" placeholder="https://… 支持 App 短链自动跳转" autocomplete="off" autocapitalize="off" spellcheck="false">
+  </label>
+  <div class="seg" id="fmt">
+    <button data-f="json" class="on">JSON</button>
+    <button data-f="csv">CSV</button>
+    <button data-f="txt">TXT</button>
+    <button data-f="m3u">M3U8</button>
+  </div>
+  <button class="go" id="go">解析歌单</button>
+</div>
+
+<div class="err" id="err"></div>
+
+<div class="card" id="result" style="display:none">
+  <div class="card-title">解析结果</div>
+  <div class="meta">
+    <span class="t" id="title">—</span>
+    <span class="pbadge" id="pbadge">—</span>
+    <span class="st" id="st">0 首</span>
+    <span class="st ok" id="ms"></span>
+  </div>
+  <div class="dl">
+    <button id="dlcsv">CSV</button>
+    <button id="dltxt">TXT</button>
+    <button id="dlm3u">M3U8</button>
+    <button id="dljson">JSON</button>
+  </div>
+  <input type="text" class="search" id="search" placeholder="搜索歌名 / 歌手 / 专辑">
+  <div class="tblbox">
+    <table><thead><tr><th></th><th>歌名</th><th>歌手</th><th>专辑</th><th style="width:56px;text-align:right">时长</th></tr></thead>
+    <tbody id="tbody"></tbody></table>
+  </div>
+</div>
+
+<footer>由 HiFi-DL 解析模块移植 · 网易云 / QQ 音乐公开歌单 · 接口可能随平台调整</footer>
+</div>
+<script>
+const $ = (id) => document.getElementById(id);
+let current = null;
+let fmt = 'json';
+
+document.querySelectorAll('#fmt button').forEach((b) =>
+  b.onclick = () => {
+    document.querySelectorAll('#fmt button').forEach((x) => x.classList.remove('on'));
+    b.classList.add('on'); fmt = b.dataset.f;
+  });
+
+function showErr(msg) {
+  const e = $('err');
+  if (msg) { e.textContent = msg; e.style.display = 'block'; } else { e.style.display = 'none'; }
+}
+function fmtDur(s) {
+  if (!s) return '—';
+  const v = Math.round(Number(s)); if (!isFinite(v) || v <= 0) return '—';
+  return `${Math.floor(v / 60)}:${String(v % 60).padStart(2, '0')}`;
+}
+
+async function parse() {
+  const link = $('url').value.trim();
+  if (!link) { showErr('请先粘贴歌单分享链接'); return; }
+  showErr(null);
+  const btn = $('go');
+  btn.classList.add('loading'); btn.disabled = true;
+  const t0 = performance.now();
+  try {
+    const res = await fetch(`?url=${encodeURIComponent(link)}&format=json`);
+    const data = await res.json();
+    if (!res.ok || !data.ok) throw new Error(data.error || ('HTTP ' + res.status));
+    current = { link, data };
+    render();
+    $('result').style.display = 'block';
+    $('ms').textContent = `${Math.round(performance.now() - t0)}ms`;
+    $('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch (err) {
+    $('result').style.display = 'none';
+    showErr(err.message || '解析失败，请检查网络或链接');
+  } finally {
+    btn.classList.remove('loading'); btn.disabled = false;
+  }
+}
+$('go').onclick = parse;
+$('url').addEventListener('keydown', (e) => { if (e.key === 'Enter') parse(); });
+
+function render() {
+  const { link, data } = current;
+  $('title').textContent = data.title || '（未命名歌单）';
+  const pb = $('pbadge');
+  pb.textContent = data.platformName || data.platform || '';
+  pb.className = 'pbadge ' + (data.platform === 'netease' ? 'netease' : 'qq');
+  $('st').textContent = `${data.count || data.songs.length} 首`;
+  draw(data.songs, '');
+  ['dlcsv', 'dltxt', 'dlm3u', 'dljson'].forEach((id) => {
+    $(id).onclick = () => {
+      const f = id.replace('dl', '');
+      const a = document.createElement('a');
+      a.href = `?url=${encodeURIComponent(link)}&format=${f}`;
+      a.download = `${(data.title || '歌单').replace(/[\\/:*?"<>|]/g, '_')}.${f === 'm3u' ? 'm3u8' : f}`;
+      document.body.appendChild(a); a.click(); a.remove();
+    };
+  });
+}
+function draw(list, kw) {
+  const tb = $('tbody');
+  const q = kw.trim().toLowerCase();
+  const rows = list.filter((s) => !q || [s.name, s.artist, s.album].join(' ').toLowerCase().includes(q));
+  if (!rows.length) { tb.innerHTML = '<tr><td colspan="5" class="empty">没有匹配的歌曲</td></tr>'; return; }
+  tb.innerHTML = rows.map((s, i) =>
+    `<tr><td>${i + 1}</td><td class="name">${escapeHtml(s.name)}</td><td class="artist">${escapeHtml(s.artist)}</td>` +
+    `<td class="album">${escapeHtml(s.album || '')}</td><td class="dur">${fmtDur(s.duration)}</td></tr>`).join('');
+}
+function escapeHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+$('search').oninput = (e) => { if (current) draw(current.data.songs, e.target.value); };
+</script>
+</body>
+</html>
