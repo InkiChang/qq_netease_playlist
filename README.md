@@ -1,4 +1,4 @@
-# Playlist Parser (CF Worker) · 网易云 / QQ 音乐歌单解析
+# qq_netease_playlist · QQ音乐 / 网易云 歌单解析 Worker
 
 把 HiFi-DL 中「歌单分享链接 → 歌曲清单」的能力提取出来，封装为 **Cloudflare Workers** 项目：粘贴一个网易云 / QQ 音乐的歌单分享链接，即可得到统一格式的歌曲清单（JSON / CSV / TXT / M3U）。
 
@@ -113,8 +113,6 @@ node scripts/build-single.mjs  # 重新生成 dist/worker-single.js
 
 ## 📄 License
 
-[MIT](LICENSE)（待定，见下方维护说明）
+[MIT](LICENSE) © 2026 InkiChang
 
-## 🙏 致谢
-
-解析逻辑移植自 [HiFi-DL (SkmdysK/hifi-dl)](https://github.com/SkmdysK/hifi-dl) 的 `online-playlist.js` 模块，仅保留网易云 / QQ 音乐平台并去除 Node 专属依赖。
+解析逻辑移植自 [HiFi-DL (SkmdysK/hifi-dl)](https://github.com/SkmdysK/hifi-dl) 的 `online-playlist.js` 模块，仅保留网易云 / QQ 音乐平台并去除 Node 专属依赖；**上游未声明开源协议**。本仓库代码（含改造部分）以 MIT 授权。
