@@ -6,6 +6,8 @@
 - **自带响应式 GUI**：iOS 风格浅色界面，PC 宽屏居中单列、手机单列自适应
 - **可作纯 API 调用**：`GET /?url=...&format=json`
 
+🌐 **在线体验**：[playlist-parser.inkichang.kdns.fr](https://playlist-parser.inkichang.kdns.fr)（粘贴分享链接即解析）
+
 ## ✨ 特性
 
 | 输入 | 输出 |
